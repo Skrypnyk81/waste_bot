@@ -1,12 +1,15 @@
-import logging
 import datetime
+import logging
+import os
 import pytz
 import telegram
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
-import os
-from dotenv import load_dotenv
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler
 
+from dotenv import load_dotenv
+from db_manager import DatabaseManager
+
+load_dotenv()
 
 # Enable logging
 logging.basicConfig(
@@ -17,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 # Replace with your actual Telegram Bot token
 TOKEN = os.getenv("TOKEN")
+
+# Inizializza il database manager
+db = DatabaseManager(os.environ.get('DATABASE_URL'))
 
 # Waste collection schedule for Calvenzano 2025
 WASTE_SCHEDULE = {
@@ -156,21 +162,17 @@ DAY_NAMES = {
 # Define conversation states
 SETTING_TIME, SETTING_ADDRESS = range(2)
 
-# User data storage
-user_data_store = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Send a welcome message when the command /start is issued."""
     user = update.effective_user
     user_id = user.id
     
-    # Initialize user data if not already present
-    if user_id not in user_data_store:
-        user_data_store[user_id] = {
-            "address": "",
-            "notification_time": "20:00",
-            "notifications_enabled": True
-        }
+    # Crea o recupera l'utente dal database
+    user_data = db.get_user(user_id)
+    if not user_data:
+        db.create_user(user_id, user.username, user.first_name, user.last_name)
+        user_data = db.get_user(user_id)
     
     await update.message.reply_text(
         f"Ciao {user.first_name}! 👋\n\n"
@@ -211,13 +213,14 @@ async def set_notification_time(update: Update, context: ContextTypes.DEFAULT_TY
     if query.data == "now":
         # Get current time
         now = datetime.datetime.now(pytz.timezone('Europe/Rome'))
-        user_data_store[user_id]["notification_time"] = now.strftime("%H:%M")
+        notification_time = now.strftime("%H:%M")
+        db.set_notification_time(user_id, notification_time)
         await query.edit_message_text(
-            f"Notifiche impostate per le {now.strftime('%H:%M')}.\n\n"
+            f"Notifiche impostate per le {notification_time}.\n\n"
             f"Vuoi impostare il tuo indirizzo per la raccolta dei tessili?"
         )
     elif query.data == "default":
-        user_data_store[user_id]["notification_time"] = "20:00"
+        db.set_notification_time(user_id, "20:00")
         await query.edit_message_text(
             "Notifiche impostate per le 20:00.\n\n"
             "Vuoi impostare il tuo indirizzo per la raccolta dei tessili?"
@@ -252,9 +255,10 @@ async def handle_custom_time(update: Update, context: ContextTypes.DEFAULT_TYPE)
     try:
         hours, minutes = map(int, text.split(':'))
         if 0 <= hours <= 23 and 0 <= minutes <= 59:
-            user_data_store[user_id]["notification_time"] = f"{hours:02d}:{minutes:02d}"
+            notification_time = f"{hours:02d}:{minutes:02d}"
+            db.set_notification_time(user_id, notification_time)
             await update.message.reply_text(
-                f"Notifiche impostate per le {hours:02d}:{minutes:02d}."
+                f"Notifiche impostate per le {notification_time}."
             )
         else:
             await update.message.reply_text(
@@ -298,6 +302,8 @@ async def set_address(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             "Configurazione completata! Riceverai notifiche per la raccolta dei rifiuti.\n\n"
             "Usa /oggi per verificare la raccolta di oggi o /domani per quella di domani."
         )
+        # Ensure notifications are enabled
+        db.set_notifications_enabled(user_id, True)
         # Schedule the first check for tomorrow's waste collection
         await schedule_tomorrow_notification(context)
         return ConversationHandler.END
@@ -308,7 +314,7 @@ async def handle_address_input(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = update.effective_user.id
     
     # Save the address
-    user_data_store[user_id]["address"] = text
+    db.set_address(user_id, text)
     
     await update.message.reply_text(
         f"Indirizzo impostato: {text}\n\n"
@@ -316,6 +322,8 @@ async def handle_address_input(update: Update, context: ContextTypes.DEFAULT_TYP
         f"Usa /oggi per verificare la raccolta di oggi o /domani per quella di domani."
     )
     
+    # Ensure notifications are enabled
+    db.set_notifications_enabled(user_id, True)
     # Schedule the first check for tomorrow's waste collection
     await schedule_tomorrow_notification(context)
     
@@ -408,9 +416,7 @@ async def show_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def stop_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Disable notifications."""
     user_id = update.effective_user.id
-    
-    if user_id in user_data_store:
-        user_data_store[user_id]["notifications_enabled"] = False
+    db.set_notifications_enabled(user_id, False)
     
     await update.message.reply_text(
         "Notifiche disattivate. Usa /start per riattivarle."
@@ -419,9 +425,7 @@ async def stop_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def restart_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Re-enable notifications."""
     user_id = update.effective_user.id
-    
-    if user_id in user_data_store:
-        user_data_store[user_id]["notifications_enabled"] = True
+    db.set_notifications_enabled(user_id, True)
     
     await update.message.reply_text(
         "Notifiche riattivate. Riceverai informazioni sulla raccolta differenziata."
@@ -445,8 +449,11 @@ async def send_notification(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
     user_id = job.data
     
+    # Get user data from database
+    user_data = db.get_user(user_id)
+    
     # Check if notifications are enabled for this user
-    if user_id not in user_data_store or not user_data_store[user_id]["notifications_enabled"]:
+    if not user_data or not user_data.get('notifications_enabled', False):
         return
     
     # Get tomorrow's date
@@ -465,10 +472,11 @@ async def send_notification(context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         
         # Add special note for textile collection (last Thursday of month)
-        if "TESSILI E INDUMENTI" in waste_types and user_data_store[user_id]["address"]:
+        address = user_data.get('address')
+        if "TESSILI E INDUMENTI" in waste_types and address:
             message += (
                 f"\n\n👕 **IMPORTANTE**: Domani è prevista la raccolta di tessili e indumenti usati. "
-                f"Il tuo indirizzo registrato è: {user_data_store[user_id]['address']}. "
+                f"Il tuo indirizzo registrato è: {address}. "
                 f"Ricorda di segnalare via WhatsApp al 324 150 8217."
             )
         
@@ -488,13 +496,16 @@ async def schedule_tomorrow_notification(context: ContextTypes.DEFAULT_TYPE) -> 
     for job in current_jobs:
         job.schedule_removal()
     
+    # Get all users who have notifications enabled
+    users = db.get_all_users_for_notification()
+    
     # Schedule notifications for all users
-    for user_id, user_data in user_data_store.items():
-        if not user_data["notifications_enabled"]:
-            continue
+    for user in users:
+        user_id = user['user_id']
+        notification_time = user['notification_time']
         
         # Parse notification time
-        hours, minutes = map(int, user_data["notification_time"].split(':'))
+        hours, minutes = map(int, notification_time.split(':'))
         
         # Calculate when to send the notification
         now = datetime.datetime.now(pytz.timezone('Europe/Rome'))
@@ -549,7 +560,11 @@ def main() -> None:
     application.add_handler(CommandHandler("stop", stop_notifications))
     
     # Start the Bot
-    application.run_polling()
+    try:
+        application.run_polling()
+    finally:
+        # Make sure to close the database connection when the bot stops
+        db.close()
 
 if __name__ == '__main__':
     main()
