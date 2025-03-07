@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Replace with your actual Telegram Bot token
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 # Inizializza il database manager
 db = DatabaseManager(os.environ.get('DATABASE_URL'))
@@ -265,7 +265,7 @@ async def handle_custom_time(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 "Formato orario non valido. Per favore, usa il formato HH:MM (es. 19:30)"
             )
             return SETTING_TIME
-    except:
+    except ValueError:
         await update.message.reply_text(
             "Formato orario non valido. Per favore, usa il formato HH:MM (es. 19:30)"
         )
@@ -365,6 +365,7 @@ async def check_tomorrow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def set_notification(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle the /setNotifica command."""
     user_id = update.effective_user.id
+    logger.info(f"Update setting notification for user {user_id}")
     
     # Ask for notification time setting
     keyboard = [
