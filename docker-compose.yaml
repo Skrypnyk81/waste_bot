@@ -9,7 +9,8 @@ services:
     working_dir: /app
     command: python main.py
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "80:80"
 
@@ -23,6 +24,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   adminer:
     image: adminer
