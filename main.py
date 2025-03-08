@@ -562,7 +562,7 @@ def main() -> None:
     
     # Start the Bot
     try:
-        application.run_polling()
+        application.run_polling(timeout=60)
     finally:
         # Make sure to close the database connection when the bot stops
         db.close()
