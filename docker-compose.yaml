@@ -14,7 +14,7 @@ services:
       - "80:80"
 
   db:
-    image: postgres:latest
+    image: postgres:16
     container_name: waste_db
     restart: always
     env_file:
