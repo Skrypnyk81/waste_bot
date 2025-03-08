@@ -4,8 +4,6 @@ services:
     container_name: waste_app
     env_file:
       - .env
-    working_dir: /app
-    command: python main.py
     depends_on:
       db:
         condition: service_healthy
