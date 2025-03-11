@@ -2,6 +2,7 @@ services:
   app:
     build: .  # Usa il Dockerfile per creare l'immagine
     container_name: waste_app
+    restart: always
     env_file:
       - .env
     depends_on:
