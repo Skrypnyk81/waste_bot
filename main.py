@@ -428,6 +428,12 @@ def main() -> None:
     
     # Start the Bot
     try:
+        # Schedule notifications for all users when the bot starts
+        application.job_queue.run_once(
+            lambda context: schedule_tomorrow_notification(context),
+            0
+        )
+        
         application.run_polling(timeout=60)
     finally:
         # Make sure to close the database connection when the bot stops
