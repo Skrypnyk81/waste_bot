@@ -53,6 +53,7 @@ class TestHandlers(unittest.IsolatedAsyncioTestCase):
         update = AsyncMock()
         context = AsyncMock()
         update.effective_user.id = 1
+        context.job_queue.get_jobs_by_name = MagicMock(return_value=[])
         await restart_notifications(update, context)
         self.mock_db.set_notifications_enabled.assert_called_with(1, True)
         update.message.reply_text.assert_called_with('Notifiche riattivate. Riceverai informazioni sulla raccolta differenziata.')

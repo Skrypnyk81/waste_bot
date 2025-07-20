@@ -22,11 +22,17 @@ class TestSchedule(unittest.IsolatedAsyncioTestCase):
         print(f"Waste types for March 1st: {waste_types}") # Debugging print
         self.assertIn('PLASTICA', waste_types)
 
-    async def test_send_notification(self):
+    @patch('service.schedule.get_waste_collection')
+    async def test_send_notification(self, mock_get_waste_types): 
+        mock_get_waste_types.return_value = ["PLASTICA"] 
+
         self.mock_db.get_user.return_value = {'user_id': 1, 'notifications_enabled': True, 'address': 'test_address'}
         context = AsyncMock()
         context.job.data = 1
+        context.job_queue.get_jobs_by_name = MagicMock(return_value=[])
+        
         await send_notification(context)
+        
         context.bot.send_message.assert_called_once()
 
     async def test_schedule_tomorrow_notification(self):
