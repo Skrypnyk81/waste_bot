@@ -110,7 +110,7 @@ class DatabaseManager:
                     columns = [desc[0] for desc in cursor.description]
                     user_data = dict(zip(columns, result))
                     # Converti il time in stringa HH:MM per compatibilità
-                    if user_data.get('notification_time'):
+                    if user_data.get('notification_time') and hasattr(user_data['notification_time'], 'strftime'):
                         user_data['notification_time'] = user_data['notification_time'].strftime('%H:%M')
                     return user_data
                 return None
@@ -248,7 +248,7 @@ class DatabaseManager:
                     for result in results:
                         user_data = dict(zip(columns, result))
                         # Converti il time in stringa HH:MM per compatibilità
-                        if user_data.get('notification_time'):
+                        if user_data.get('notification_time') and hasattr(user_data['notification_time'], 'strftime'):
                             user_data['notification_time'] = user_data['notification_time'].strftime('%H:%M')
                         users.append(user_data)
                     return users
