@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from commands.handlers import (
     start, set_notification_time, handle_custom_time, set_address, handle_address_input, 
     check_today, check_tomorrow, show_info, stop_notifications, restart_notifications, 
-    set_notification, set_address_command, SETTING_TIME, SETTING_ADDRESS
+    set_notification, set_address_command, show_bins_menu, SETTING_TIME, SETTING_ADDRESS
 )
 from logic.schedule import schedule_tomorrow_notification
 from db_manager import DatabaseManager
@@ -59,6 +59,7 @@ def main() -> None:
     application.add_handler(CommandHandler("info", show_info))
     application.add_handler(CommandHandler("stop", stop_notifications))
     application.add_handler(CommandHandler("restart", restart_notifications))
+    application.add_handler(CommandHandler("bidone", show_bins_menu))
 
     # Start the Bot
     try:
