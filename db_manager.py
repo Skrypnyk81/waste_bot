@@ -58,6 +58,8 @@ class DatabaseManager:
             address VARCHAR(255),
             notification_time TIME DEFAULT '20:00',
             notifications_enabled BOOLEAN DEFAULT TRUE,
+            count_bins INTEGER DEFAULT 0,
+            limit_bins INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
         )
