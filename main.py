@@ -1,77 +1,102 @@
 import logging
 import os
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ConversationHandler, MessageHandler
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    ConversationHandler,
+    MessageHandler,
+    filters  # Assicurati che filters sia importato
+)
 from dotenv import load_dotenv
 
+# Importa gli handler esistenti
 from commands.handlers import (
-    start, set_notification_time, handle_custom_time, set_address, handle_address_input, 
-    check_today, check_tomorrow, show_info, stop_notifications, restart_notifications, 
-    set_notification, set_address_command, show_bins_menu, SETTING_TIME, SETTING_ADDRESS
+    start, set_notification_time, handle_custom_time, set_address, handle_address_input,
+    check_today, check_tomorrow, show_info, stop_notifications, restart_notifications,
+    set_notification, set_address_command, SETTING_TIME, SETTING_ADDRESS
 )
-from logic.schedule import schedule_tomorrow_notification
+# Importa i nuovi handler per i bidoni
+from commands.bins_handler import (
+    show_bins_menu,
+    button_handler,
+    handle_limit_input,
+    cancel,
+    SETTING_LIMIT
+)
+from service.schedule import schedule_tomorrow_notification
 from db_manager import DatabaseManager
 
 load_dotenv()
 
-# Enable logging
+# Configurazione del logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Replace with your actual Telegram Bot token
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
-# Inizializza il database manager
 db = DatabaseManager(os.environ.get('DATABASE_URL'))
 
 def main() -> None:
-    """Start the bot."""
-    # Create the Application
+    """Avvia il bot."""
     application = ApplicationBuilder().token(TOKEN).build()
-    
-    # Add conversation handler for setup
-    conv_handler = ConversationHandler(
-        entry_points=[
-            CommandHandler("start", start),
-            CommandHandler("setNotifica", set_notification),
-            CommandHandler("setIndirizzo", set_address_command)
-        ],
+
+    # Conversation handler per la configurazione iniziale (/start)
+    setup_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
         states={
             SETTING_TIME: [
                 CallbackQueryHandler(set_notification_time, pattern="^(now|default|custom)$"),
-                MessageHandler(telegram.ext.filters.TEXT & ~telegram.ext.filters.COMMAND, handle_custom_time)
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_time)
             ],
             SETTING_ADDRESS: [
                 CallbackQueryHandler(set_address, pattern="^(yes_address|no_address)$"),
-                MessageHandler(telegram.ext.filters.TEXT & ~telegram.ext.filters.COMMAND, handle_address_input)
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address_input)
             ]
         },
-        fallbacks=[CommandHandler("start", start)]
+        fallbacks=[CommandHandler("cancel", cancel)]
     )
+
+    # Conversation handler per la gestione dei bidoni (/bidone)
+    bins_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("bidone", show_bins_menu)],
+        states={
+            # Stato in attesa dell'input numerico per il limite
+            SETTING_LIMIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_limit_input)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+        # Permetti di gestire i pulsanti come entry point dopo il primo avvio
+        map_to_parent={
+            ConversationHandler.END: ConversationHandler.END
+        }
+    )
+
+    # Aggiungi un handler per i pulsanti che non fanno parte di una conversazione attiva
+    # Questo gestirà i pulsanti del menu dei bidoni
+    application.add_handler(CallbackQueryHandler(button_handler))
     
-    application.add_handler(conv_handler)
-    
-    # Add command handlers
+    # Aggiungi i conversation handler
+    application.add_handler(setup_conv_handler)
+    application.add_handler(bins_conv_handler)
+
+    # Aggiungi gli altri command handler
     application.add_handler(CommandHandler("oggi", check_today))
     application.add_handler(CommandHandler("domani", check_tomorrow))
     application.add_handler(CommandHandler("info", show_info))
     application.add_handler(CommandHandler("stop", stop_notifications))
     application.add_handler(CommandHandler("restart", restart_notifications))
-    application.add_handler(CommandHandler("bidone", show_bins_menu))
+    application.add_handler(CommandHandler("setNotifica", set_notification))
+    application.add_handler(CommandHandler("setIndirizzo", set_address_command))
 
-    # Start the Bot
     try:
-        # Schedule notifications for all users when the bot starts
+        # Programma le notifiche all'avvio del bot
         application.job_queue.run_once(
-            lambda context: schedule_tomorrow_notification(context),
-            0
+            lambda context: schedule_tomorrow_notification(context), 0
         )
-        
         application.run_polling(timeout=60)
     finally:
-        # Make sure to close the database connection when the bot stops
         db.close()
 
 if __name__ == '__main__':
