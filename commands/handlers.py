@@ -3,7 +3,7 @@ import logging
 import os
 import pytz
 import telegram
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from config.waste_schedules import WASTE_SCHEDULE, WASTE_INSTRUCTIONS, WASTE_EMOJI, DAY_NAMES, MONTH_NAMES
 
