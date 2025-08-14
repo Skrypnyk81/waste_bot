@@ -58,13 +58,13 @@ async def show_bins_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.callback_query.edit_message_text(
             text,
             reply_markup=reply_markup,
-            parse_mode='HTML'
+            parse_mode='MarkdownV2'
         )
     else:
         await update.message.reply_text(
             text,
             reply_markup=reply_markup,
-            parse_mode='HTML'
+            parse_mode='MarkdownV2'
         )
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -127,5 +127,5 @@ async def handle_limit_input(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Annulla e termina la conversazione."""
-    await update.message.reply_text('Operazione annullata.')
+    await update.message.reply_text('Operazione annullata\.')
     return ConversationHandler.END
