@@ -18,6 +18,7 @@ from commands.handlers import (
 )
 # Importa i nuovi handler per i bidoni
 from commands.bins_handler import (
+    MANAGE_BINS,
     show_bins_menu,
     button_handler,
     handle_limit_input,
@@ -63,20 +64,16 @@ def main() -> None:
     bins_conv_handler = ConversationHandler(
         entry_points=[CommandHandler("bidone", show_bins_menu)],
         states={
-            # Stato in attesa dell'input numerico per il limite
-            SETTING_LIMIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_limit_input)],
+            MANAGE_BINS: [
+                CallbackQueryHandler(button_handler)
+            ],
+            SETTING_LIMIT: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_limit_input)
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
-        # Permetti di gestire i pulsanti come entry point dopo il primo avvio
-        map_to_parent={
-            ConversationHandler.END: ConversationHandler.END
-        }
     )
 
-    # Aggiungi un handler per i pulsanti che non fanno parte di una conversazione attiva
-    # Questo gestirà i pulsanti del menu dei bidoni
-    application.add_handler(CallbackQueryHandler(button_handler))
-    
     # Aggiungi i conversation handler
     application.add_handler(setup_conv_handler)
     application.add_handler(bins_conv_handler)
