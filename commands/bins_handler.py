@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from db_manager import DatabaseManager
 import os
@@ -33,12 +33,12 @@ async def show_bins_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     count_bins: int = user_data.get('count_bins', 0)
     limit_bins: int = user_data.get('limit_bins') or "non impostato"
-
+    
     text = (
         f"Ciao *{user.first_name}*! 👋\n\n"
         f"📊 *Stato Tracciamento Bidoni Secco*\n"
-        f"Hai portato fuori: `{count_bins}` bidoni\.\n"
-        f"Il tuo limite è: `{limit_bins}` bidoni\.\n\n"
+        f"Hai portato fuori: `{count_bins}` bidoni.\n"
+        f"Il tuo limite è: `{limit_bins}` bidoni.\n\n"
         "Scegli un'azione qui sotto:"
     )
 
@@ -58,13 +58,13 @@ async def show_bins_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.callback_query.edit_message_text(
             text,
             reply_markup=reply_markup,
-            parse_mode=ParseMode.MARKDOWN_V2
+            parse_mode='HTML'
         )
     else:
         await update.message.reply_text(
             text,
             reply_markup=reply_markup,
-            parse_mode=ParseMode.MARKDOWN_V2
+            parse_mode='HTML'
         )
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
