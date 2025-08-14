@@ -48,7 +48,7 @@ class DatabaseManager:
             raise
     
     def _create_tables(self):
-        """Crea la tabella utenti se non esiste."""
+        """Crea la tabella utenti se non esiste e aggiunge le nuove colonne se necessario."""
         create_users_table_query = """
         CREATE TABLE IF NOT EXISTS users (
             user_id BIGINT PRIMARY KEY,
@@ -58,8 +58,6 @@ class DatabaseManager:
             address VARCHAR(255),
             notification_time TIME DEFAULT '20:00',
             notifications_enabled BOOLEAN DEFAULT TRUE,
-            count_bins INTEGER DEFAULT 0,
-            limit_bins INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
         )
@@ -68,8 +66,26 @@ class DatabaseManager:
         with self._get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(create_users_table_query)
+                
+                # Verifica e aggiungi le colonne mancanti
+                self._add_column_if_not_exists(cursor, 'users', 'count_bins', 'INTEGER DEFAULT 0')
+                self._add_column_if_not_exists(cursor, 'users', 'limit_bins', 'INTEGER DEFAULT 0')
+                
                 conn.commit()
                 logger.info("Tabella 'users' verificata/creata con successo")
+
+    def _add_column_if_not_exists(self, cursor, table_name, column_name, column_definition):
+        """Aggiunge una colonna a una tabella se non esiste già."""
+        cursor.execute(f"""
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = '{table_name}' AND column_name = '{column_name}'
+        """)
+        exists = cursor.fetchone()
+        
+        if not exists:
+            cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
+            logger.info(f"Aggiunta colonna '{column_name}' alla tabella '{table_name}'")
     
     def _get_connection(self):
         """
