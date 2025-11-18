@@ -5,9 +5,12 @@ from telegram.ext import ContextTypes
 from config.waste_schedules import WASTE_SCHEDULE, WASTE_EMOJI, DAY_NAMES, MONTH_NAMES
 from db_manager import DatabaseManager
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Inizializza il database manager
-db = DatabaseManager(os.environ.get('DATABASE_URL'))
+db = DatabaseManager(os.getenv('DATABASE_URL'))
 
 def get_waste_collection(day, month):
     """Get waste types collected on a specific date."""
