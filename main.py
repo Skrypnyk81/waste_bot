@@ -1,6 +1,13 @@
 import logging
 import os
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ConversationHandler, MessageHandler
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 from dotenv import load_dotenv
 
 from commands.handlers import (
@@ -41,11 +48,11 @@ def main() -> None:
         states={
             SETTING_TIME: [
                 CallbackQueryHandler(set_notification_time, pattern="^(now|default|custom)$"),
-                MessageHandler(telegram.ext.filters.TEXT & ~telegram.ext.filters.COMMAND, handle_custom_time)
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_time)
             ],
             SETTING_ADDRESS: [
                 CallbackQueryHandler(set_address, pattern="^(yes_address|no_address)$"),
-                MessageHandler(telegram.ext.filters.TEXT & ~telegram.ext.filters.COMMAND, handle_address_input)
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address_input)
             ]
         },
         fallbacks=[CommandHandler("start", start)]
