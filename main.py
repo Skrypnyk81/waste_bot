@@ -8,7 +8,7 @@ from commands.handlers import (
     check_today, check_tomorrow, show_info, stop_notifications, restart_notifications, 
     set_notification, set_address_command, SETTING_TIME, SETTING_ADDRESS
 )
-from logic.schedule import schedule_tomorrow_notification
+from service.schedule import schedule_tomorrow_notification
 from db_manager import DatabaseManager
 
 load_dotenv()
