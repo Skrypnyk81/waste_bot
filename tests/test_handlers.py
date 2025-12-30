@@ -1,19 +1,26 @@
-
 import unittest
 import os
 from unittest.mock import patch, MagicMock, AsyncMock
 
 
 # Patch DatabaseManager before importing modules that use it
-with patch.dict(os.environ, {'DATABASE_URL': 'dbname=test'}):
-    with patch('db_manager.DatabaseManager') as MockDatabaseManager:
+with patch.dict(os.environ, {"DATABASE_URL": "dbname=test"}):
+    with patch("db_manager.DatabaseManager") as MockDatabaseManager:
         MockDatabaseManager.return_value = MagicMock()
-        from commands.handlers import start, check_today, check_tomorrow, show_info, stop_notifications, restart_notifications
+        from commands.handlers import (
+            start,
+            check_today,
+            check_tomorrow,
+            show_info,
+            stop_notifications,
+            restart_notifications,
+        )
+
 
 class TestHandlers(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         # Patch the db instance that was already imported
-        self.mock_db = patch('commands.handlers.db').start()
+        self.mock_db = patch("commands.handlers.db").start()
         self.addCleanup(patch.stopall)
 
     async def test_start(self):
@@ -47,7 +54,7 @@ class TestHandlers(unittest.IsolatedAsyncioTestCase):
         update.effective_user.id = 1
         await stop_notifications(update, context)
         self.mock_db.set_notifications_enabled.assert_called_with(1, False)
-        update.message.reply_text.assert_called_with('Notifiche disattivate. Usa /start per riattivarle.')
+        update.message.reply_text.assert_called_with("Notifiche disattivate. Usa /start per riattivarle.")
 
     async def test_restart_notifications(self):
         update = AsyncMock()
@@ -56,7 +63,10 @@ class TestHandlers(unittest.IsolatedAsyncioTestCase):
         context.job_queue.get_jobs_by_name = MagicMock(return_value=[])
         await restart_notifications(update, context)
         self.mock_db.set_notifications_enabled.assert_called_with(1, True)
-        update.message.reply_text.assert_called_with('Notifiche riattivate. Riceverai informazioni sulla raccolta differenziata.')
+        update.message.reply_text.assert_called_with(
+            "Notifiche riattivate. Riceverai informazioni sulla raccolta differenziata."
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

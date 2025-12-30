@@ -12,7 +12,7 @@ WASTE_SCHEDULE = {
         9: [13, 27],
         10: [11, 25],
         11: [8, 22],
-        12: [6, 20]
+        12: [6, 20],
     },
     "INDIFFERENZIATO": {  # Non-recyclable waste - every Wednesday
         1: [2, 8, 15, 22, 29],  # Note: January 2 is Thursday
@@ -26,7 +26,7 @@ WASTE_SCHEDULE = {
         9: [3, 10, 17, 24],
         10: [1, 8, 15, 22, 29],
         11: [5, 12, 19, 26],
-        12: [3, 10, 17, 24, 31]
+        12: [3, 10, 17, 24, 31],
     },
     "ORGANICO": {  # Organic waste - every Saturday, twice a week in summer
         1: [4, 11, 18, 25],
@@ -40,7 +40,7 @@ WASTE_SCHEDULE = {
         9: [3, 6, 10, 13, 17, 20, 24, 27],  # Wednesday and Saturday in summer
         10: [4, 11, 18, 25],
         11: [3, 8, 15, 22, 29],  # Note: November 3 is Monday
-        12: [6, 13, 20, 27]
+        12: [6, 13, 20, 27],
     },
     "PLASTICA": {  # Plastic - every Saturday
         1: [4, 11, 18, 25],
@@ -54,7 +54,7 @@ WASTE_SCHEDULE = {
         9: [6, 13, 20, 27],
         10: [4, 11, 18, 25],
         11: [4, 8, 15, 22, 29],  # Note: November 4 is Tuesday
-        12: [6, 13, 20, 27]
+        12: [6, 13, 20, 27],
     },
     "VETRO E BARATTOLAME": {  # Glass and cans - every Friday
         1: [3, 10, 17, 24, 31],
@@ -68,7 +68,7 @@ WASTE_SCHEDULE = {
         9: [5, 12, 19, 26],
         10: [3, 10, 17, 24, 31],
         11: [7, 14, 21, 28],
-        12: [5, 12, 19, 26]
+        12: [5, 12, 19, 26],
     },
     "TESSILI E INDUMENTI": {  # Textiles and clothing - last Thursday of each month
         1: [30],
@@ -82,8 +82,8 @@ WASTE_SCHEDULE = {
         9: [25],
         10: [30],
         11: [27],
-        12: [25]  # Actually the last Thursday is January 1, 2026
-    }
+        12: [25],  # Actually the last Thursday is January 1, 2026
+    },
 }
 
 # Waste disposal instructions
@@ -93,7 +93,10 @@ WASTE_INSTRUCTIONS = {
     "ORGANICO": "🥕 Conferire racchiuso negli appositi sacchetti di MATER-BI (amido di mais), nei bidoni forniti.",
     "PLASTICA": "♻️ Conferire negli appositi contenitori forniti dall'Amministrazione Comunale.",
     "VETRO E BARATTOLAME": "🍾 Conferire negli appositi bidoni forniti dall'Amministrazione comunale.",
-    "TESSILI E INDUMENTI": "👕 Segnalare via e n. civico chiamando o mandando un WhatsApp al 324 150 8217. In alternativa, utilizzare il cassone presso il centro di raccolta."
+    "TESSILI E INDUMENTI": (
+        "👕 Segnalare via e n. civico chiamando o mandando un WhatsApp al 324 150 8217. "
+        "In alternativa, utilizzare il cassone presso il centro di raccolta."
+    ),
 }
 
 # Emoji for waste types
@@ -103,7 +106,7 @@ WASTE_EMOJI = {
     "ORGANICO": "🥕",
     "PLASTICA": "♻️",
     "VETRO E BARATTOLAME": "🍾",
-    "TESSILI E INDUMENTI": "👕"
+    "TESSILI E INDUMENTI": "👕",
 }
 
 # Italian month names
@@ -119,7 +122,7 @@ MONTH_NAMES = {
     9: "Settembre",
     10: "Ottobre",
     11: "Novembre",
-    12: "Dicembre"
+    12: "Dicembre",
 }
 
 # Italian day names
@@ -130,5 +133,5 @@ DAY_NAMES = {
     3: "Giovedì",
     4: "Venerdì",
     5: "Sabato",
-    6: "Domenica"
+    6: "Domenica",
 }
