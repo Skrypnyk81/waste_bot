@@ -9,7 +9,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "80:80"
+      - "7000:80"
 
   db:
     image: postgres:17
