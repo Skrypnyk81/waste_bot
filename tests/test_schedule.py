@@ -22,7 +22,7 @@ class TestSchedule(unittest.IsolatedAsyncioTestCase):
 
     def test_get_waste_collection(self):
         # March 1st has PLASTICA scheduled
-        waste_types = get_waste_collection(1, 3)
+        waste_types = get_waste_collection(7, 3)
         print(f"Waste types for March 1st: {waste_types}")  # Debugging print
         self.assertIn("PLASTICA", waste_types)
 
