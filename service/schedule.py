@@ -52,16 +52,6 @@ async def send_notification(context: ContextTypes.DEFAULT_TYPE) -> None:
             f"{waste_list}\n\n"
             "Ricorda: posiziona i rifiuti in strada non prima delle ore 20:00 di oggi."
         )
-
-        # Add special note for textile collection (last Thursday of month)
-        address = user_data.get("address")
-        if "TESSILI E INDUMENTI" in waste_types and address:
-            message += (
-                "\n\n👕 **IMPORTANTE**: Domani è prevista la raccolta di tessili e indumenti usati. "
-                f"Il tuo indirizzo registrato è: {address}. "
-                "Ricorda di segnalare via WhatsApp al 324 150 8217."
-            )
-
         await context.bot.send_message(user_id, message, parse_mode=telegram.constants.ParseMode.MARKDOWN)
 
     # Schedule the next notification for tomorrow
