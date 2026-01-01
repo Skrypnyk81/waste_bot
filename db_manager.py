@@ -1,6 +1,7 @@
 import os
 import logging
 import psycopg2
+import psycopg2.pool
 from dotenv import load_dotenv
 
 # Configurazione logging
