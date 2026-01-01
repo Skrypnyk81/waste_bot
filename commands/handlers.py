@@ -44,7 +44,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "/oggi - Verifica quali rifiuti raccolgono oggi\n"
         "/domani - Verifica quali rifiuti raccolgono domani\n"
         "/setNotifica - Imposta l'orario della notifica giornaliera\n"
-        "/setIndirizzo - Imposta il tuo indirizzo per i tessili\n"
         "/info - Istruzioni per la raccolta differenziata\n"
         "/stop - Disattiva le notifiche\n"
         "/start - Riattiva le notifiche"
@@ -81,31 +80,17 @@ async def set_notification_time(update: Update, context: ContextTypes.DEFAULT_TY
         db.set_notification_time(user_id, notification_time)
         await query.edit_message_text(
             f"Notifiche impostate per le {notification_time}.\n\n"
-            f"Vuoi impostare il tuo indirizzo per la raccolta dei tessili?"
         )
     elif query.data == "default":
         db.set_notification_time(user_id, "20:00")
         await query.edit_message_text(
-            "Notifiche impostate per le 20:00.\n\n" "Vuoi impostare il tuo indirizzo per la raccolta dei tessili?"
+            "Notifiche impostate per le 20:00.\n\n"
         )
     elif query.data == "custom":
         await query.edit_message_text(
             "Per favore, invia l'orario in cui desideri ricevere le notifiche nel formato HH:MM (es. 19:30)"
         )
         return SETTING_TIME
-
-    # Ask for address
-    keyboard = [
-        [InlineKeyboardButton("Sì", callback_data="yes_address")],
-        [InlineKeyboardButton("No", callback_data="no_address")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await context.bot.send_message(
-        chat_id=user_id,
-        text="Vuoi impostare il tuo indirizzo per la raccolta dei tessili?",
-        reply_markup=reply_markup,
-    )
 
     return SETTING_ADDRESS
 
@@ -129,19 +114,7 @@ async def handle_custom_time(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("Formato orario non valido. Per favore, usa il formato HH:MM (es. 19:30)")
         return SETTING_TIME
 
-    # Ask for address
-    keyboard = [
-        [InlineKeyboardButton("Sì", callback_data="yes_address")],
-        [InlineKeyboardButton("No", callback_data="no_address")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await update.message.reply_text(
-        "Vuoi impostare il tuo indirizzo per la raccolta dei tessili?",
-        reply_markup=reply_markup,
-    )
-
-    return SETTING_ADDRESS
+    return ConversationHandler.END
 
 
 async def set_address(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -251,15 +224,6 @@ async def set_notification(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     )
 
     return SETTING_TIME
-
-
-async def set_address_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Handle the /setIndirizzo command."""
-    await update.message.reply_text(
-        "Per favore, invia il tuo indirizzo (via e numero civico) per la raccolta dei tessili."
-    )
-
-    return SETTING_ADDRESS
 
 
 async def show_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
