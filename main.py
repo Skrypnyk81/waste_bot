@@ -14,17 +14,13 @@ from commands.handlers import (
     start,
     set_notification_time,
     handle_custom_time,
-    set_address,
-    handle_address_input,
     check_today,
     check_tomorrow,
     show_info,
     stop_notifications,
     restart_notifications,
     set_notification,
-    set_address_command,
     SETTING_TIME,
-    SETTING_ADDRESS,
 )
 from service.schedule import schedule_tomorrow_notification
 from db_manager import DatabaseManager
@@ -52,16 +48,11 @@ def main() -> None:
         entry_points=[
             CommandHandler("start", start),
             CommandHandler("setNotifica", set_notification),
-            CommandHandler("setIndirizzo", set_address_command),
         ],
         states={
             SETTING_TIME: [
                 CallbackQueryHandler(set_notification_time, pattern="^(now|default|custom)$"),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_time),
-            ],
-            SETTING_ADDRESS: [
-                CallbackQueryHandler(set_address, pattern="^(yes_address|no_address)$"),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address_input),
             ],
         },
         fallbacks=[CommandHandler("start", start)],
